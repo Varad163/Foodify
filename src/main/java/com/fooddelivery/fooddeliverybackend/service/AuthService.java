@@ -5,6 +5,7 @@ import com.fooddelivery.fooddeliverybackend.dto.SignupRequest;
 import com.fooddelivery.fooddeliverybackend.entity.Role;
 import com.fooddelivery.fooddeliverybackend.entity.User;
 import com.fooddelivery.fooddeliverybackend.repository.UserRepository;
+import com.fooddelivery.fooddeliverybackend.util.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,19 +22,24 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     // Signup Logic
     public String signup(SignupRequest request) {
 
         // Check if email already exists
         Optional<User> existingUser =
-                userRepository.findByEmail(request.getEmail());
+                userRepository.findByEmail(
+                        request.getEmail()
+                );
 
         if(existingUser.isPresent()) {
 
             return "Email Already Registered";
         }
 
-        // Create new user
+        // Create user
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
@@ -45,7 +51,7 @@ public class AuthService {
                 .role(Role.CUSTOMER)
                 .build();
 
-        // Save user in database
+        // Save user
         userRepository.save(user);
 
         return "User Registered Successfully";
@@ -55,9 +61,11 @@ public class AuthService {
     public String login(LoginRequest request) {
 
         Optional<User> optionalUser =
-                userRepository.findByEmail(request.getEmail());
+                userRepository.findByEmail(
+                        request.getEmail()
+                );
 
-        // Check user exists
+        // User not found
         if(optionalUser.isEmpty()) {
 
             return "User Not Found";
@@ -65,7 +73,7 @@ public class AuthService {
 
         User user = optionalUser.get();
 
-        // Compare password
+        // Password check
         boolean isPasswordMatch =
                 passwordEncoder.matches(
                         request.getPassword(),
@@ -77,6 +85,9 @@ public class AuthService {
             return "Invalid Password";
         }
 
-        return "Login Successful";
+        // Generate JWT token
+        return jwtUtil.generateToken(
+                user.getEmail()
+        );
     }
 }

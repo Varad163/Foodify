@@ -11,4 +11,9 @@ public class TestController {
 
         return "Food Delivery Backend Running 🚀";
     }
+    @GetMapping("/profile")
+    public String profile() {
+
+        return "Protected Profile API";
+    }
 }
