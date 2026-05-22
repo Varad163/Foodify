@@ -13,9 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 import org.springframework.security.config.http.SessionCreationPolicy;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -27,7 +24,6 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
-
 
     @Bean
     public AuthenticationManager authenticationManager(
@@ -44,17 +40,14 @@ public class SecurityConfig {
 
         http
 
-                // Disable CSRF
                 .csrf(csrf -> csrf.disable())
 
-                // Stateless JWT
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // API Permissions
                 .authorizeHttpRequests(auth -> auth
 
                         // Public APIs
@@ -62,11 +55,28 @@ public class SecurityConfig {
                                 "/api/auth/**"
                         ).permitAll()
 
-                        // Protected APIs
+                        // CUSTOMER
+                        .requestMatchers(
+                                "/profile"
+                        ).hasAnyRole(
+                                "CUSTOMER",
+                                "ADMIN",
+                                "RESTAURANT_OWNER"
+                        )
+
+                        // ADMIN
+                        .requestMatchers(
+                                "/admin/**"
+                        ).hasRole("ADMIN")
+
+                        // RESTAURANT OWNER
+                        .requestMatchers(
+                                "/restaurant/**"
+                        ).hasRole("RESTAURANT_OWNER")
+
                         .anyRequest().authenticated()
                 )
 
-                // Add JWT filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
