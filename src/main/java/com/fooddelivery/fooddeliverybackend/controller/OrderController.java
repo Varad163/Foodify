@@ -1,6 +1,9 @@
 package com.fooddelivery.fooddeliverybackend.controller;
 
 import com.fooddelivery.fooddeliverybackend.dto.OrderResponse;
+
+import com.fooddelivery.fooddeliverybackend.entity.OrderStatus;
+
 import com.fooddelivery.fooddeliverybackend.service.OrderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/order")
+
 public class OrderController {
 
     @Autowired
@@ -37,6 +41,21 @@ public class OrderController {
 
         return orderService.getMyOrders(
                 authentication.getName()
+        );
+    }
+
+    // UPDATE ORDER STATUS
+    @PutMapping("/status/{orderId}")
+    public String updateOrderStatus(
+
+            @PathVariable Long orderId,
+
+            @RequestParam OrderStatus status
+    ) {
+
+        return orderService.updateOrderStatus(
+                orderId,
+                status
         );
     }
 }

@@ -1,7 +1,7 @@
 package com.fooddelivery.fooddeliverybackend.repository;
 
-import com.fooddelivery.fooddeliverybackend.entity.Payment;
 import com.fooddelivery.fooddeliverybackend.entity.Order;
+import com.fooddelivery.fooddeliverybackend.entity.Payment;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -14,5 +14,7 @@ public interface PaymentRepository
             String email
     );
 
-    Payment findByOrder(Order order);
+    Payment findByOrder(
+            Order order
+    );
 }

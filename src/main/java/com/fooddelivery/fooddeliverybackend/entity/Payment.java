@@ -3,8 +3,6 @@ package com.fooddelivery.fooddeliverybackend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "payments")
 
@@ -13,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
 public class Payment {
 
     @Id
@@ -24,16 +23,10 @@ public class Payment {
     @JoinColumn(name = "order_id")
     private Order order;
 
-    // Amount
     private Double amount;
 
-    // Payment Method
-    private String method;
+    private String paymentMethod;
 
-    // Status
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
-
-    // Payment Time
-    private LocalDateTime paidAt;
 }

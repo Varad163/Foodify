@@ -31,7 +31,7 @@ public class OrderService {
     @Autowired
     private OrderItemRepository orderItemRepository;
 
-    // Place Order
+    // PLACE ORDER
     public String placeOrder(
             String email
     ) {
@@ -39,13 +39,17 @@ public class OrderService {
         User user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new RuntimeException(
+                                "User not found"
+                        )
                 );
 
         Cart cart = cartRepository
                 .findByUser(user)
                 .orElseThrow(() ->
-                        new RuntimeException("Cart not found")
+                        new RuntimeException(
+                                "Cart not found"
+                        )
                 );
 
         List<CartItem> cartItems =
@@ -74,7 +78,7 @@ public class OrderService {
 
         order.setTotalAmount(total);
 
-        order.setStatus("PLACED");
+        order.setStatus(OrderStatus.PLACED);
 
         order.setCreatedAt(LocalDateTime.now());
 
@@ -84,7 +88,8 @@ public class OrderService {
         // Create Order Items
         for (CartItem item : cartItems) {
 
-            OrderItem orderItem = new OrderItem();
+            OrderItem orderItem =
+                    new OrderItem();
 
             orderItem.setOrder(savedOrder);
 
@@ -109,7 +114,7 @@ public class OrderService {
         return "Order Placed Successfully";
     }
 
-    // Get My Orders
+    // GET MY ORDERS
     public List<OrderResponse> getMyOrders(
             String email
     ) {
@@ -117,7 +122,9 @@ public class OrderService {
         User user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new RuntimeException(
+                                "User not found"
+                        )
                 );
 
         List<Order> orders =
@@ -133,7 +140,9 @@ public class OrderService {
                                 order.getTotalAmount()
                         )
 
-                        .status(order.getStatus())
+                        .status(
+                                order.getStatus().name()
+                        )
 
                         .createdAt(
                                 order.getCreatedAt()
@@ -142,5 +151,28 @@ public class OrderService {
                         .build())
 
                 .collect(Collectors.toList());
+    }
+
+    // UPDATE ORDER STATUS
+    public String updateOrderStatus(
+
+            Long orderId,
+
+            OrderStatus status
+    ) {
+
+        Order order = orderRepository
+                .findById(orderId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Order not found"
+                        )
+                );
+
+        order.setStatus(status);
+
+        orderRepository.save(order);
+
+        return "Order status updated successfully";
     }
 }

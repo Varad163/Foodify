@@ -1,17 +1,17 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
 import com.fooddelivery.fooddeliverybackend.dto.PaymentResponse;
+
 import com.fooddelivery.fooddeliverybackend.entity.Order;
 import com.fooddelivery.fooddeliverybackend.entity.Payment;
 import com.fooddelivery.fooddeliverybackend.entity.PaymentStatus;
+
 import com.fooddelivery.fooddeliverybackend.repository.OrderRepository;
 import com.fooddelivery.fooddeliverybackend.repository.PaymentRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,9 +30,12 @@ public class PaymentService {
             String method
     ) {
 
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository
+                .findById(orderId)
                 .orElseThrow(() ->
-                        new RuntimeException("Order not found")
+                        new RuntimeException(
+                                "Order not found"
+                        )
                 );
 
         Payment existingPayment =
@@ -49,17 +52,15 @@ public class PaymentService {
 
                 .amount(order.getTotalAmount())
 
-                .method(method)
+                .paymentMethod(method)
 
                 .status(PaymentStatus.SUCCESS)
-
-                .paidAt(LocalDateTime.now())
 
                 .build();
 
         paymentRepository.save(payment);
 
-        return "Payment successful";
+        return "Payment Successful";
     }
 
     // MY PAYMENTS
@@ -81,13 +82,17 @@ public class PaymentService {
                                 payment.getOrder().getId()
                         )
 
-                        .amount(payment.getAmount())
+                        .amount(
+                                payment.getAmount()
+                        )
 
-                        .method(payment.getMethod())
+                        .paymentMethod(
+                                payment.getPaymentMethod()
+                        )
 
-                        .status(payment.getStatus())
-
-                        .paidAt(payment.getPaidAt())
+                        .status(
+                                payment.getStatus().name()
+                        )
 
                         .build())
 
