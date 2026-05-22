@@ -9,6 +9,8 @@ import com.fooddelivery.fooddeliverybackend.repository.RestaurantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class FoodService {
 
@@ -18,6 +20,7 @@ public class FoodService {
     @Autowired
     private RestaurantRepository restaurantRepository;
 
+    // Add Food
     public String addFood(
             FoodRequest request
     ) {
@@ -50,5 +53,20 @@ public class FoodService {
         foodRepository.save(food);
 
         return "Food Added Successfully";
+    }
+
+    // Get All Food
+    public List<FoodItem> getAllFood() {
+
+        return foodRepository.findAll();
+    }
+
+    // Get Food By Restaurant
+    public List<FoodItem> getFoodByRestaurant(
+            Long restaurantId
+    ) {
+
+        return foodRepository
+                .findByRestaurantId(restaurantId);
     }
 }
