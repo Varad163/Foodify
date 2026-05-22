@@ -59,7 +59,7 @@ public class SecurityConfig {
                                 "/"
                         ).permitAll()
 
-                        // CUSTOMER / ADMIN / RESTAURANT OWNER
+                        // PROFILE APIs
                         .requestMatchers(
                                 "/profile"
                         ).hasAnyRole(
@@ -80,6 +80,7 @@ public class SecurityConfig {
                                 "RESTAURANT_OWNER",
                                 "ADMIN"
                         )
+
                         // FOOD APIs
                         .requestMatchers(
                                 "/food/**"
@@ -87,6 +88,11 @@ public class SecurityConfig {
                                 "RESTAURANT_OWNER",
                                 "ADMIN"
                         )
+
+                        // CART APIs
+                        .requestMatchers(
+                                "/cart/**"
+                        ).hasRole("CUSTOMER")
 
                         // All other APIs need authentication
                         .anyRequest().authenticated()
