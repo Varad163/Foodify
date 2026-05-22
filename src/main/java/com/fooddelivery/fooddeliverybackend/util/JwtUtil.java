@@ -21,26 +21,38 @@ public class JwtUtil {
     private static final long EXPIRATION_TIME =
             1000 * 60 * 60 * 24;
 
-    // Generate JWT token
-    public String generateToken(String email) {
+    // Generate JWT token with role
+    public String generateToken(String email, String role) {
 
         Key key = Keys.hmacShaKeyFor(
                 SECRET_KEY.getBytes()
         );
 
         return Jwts.builder()
+
+                // Email
                 .setSubject(email)
+
+                // Role
+                .claim("role", role)
+
+                // Created time
                 .setIssuedAt(new Date())
+
+                // Expiry time
                 .setExpiration(
                         new Date(
                                 System.currentTimeMillis()
                                         + EXPIRATION_TIME
                         )
                 )
+
+                // Signature
                 .signWith(
                         key,
                         SignatureAlgorithm.HS256
                 )
+
                 .compact();
     }
 
@@ -50,6 +62,14 @@ public class JwtUtil {
         Claims claims = extractAllClaims(token);
 
         return claims.getSubject();
+    }
+
+    // Extract role from token
+    public String extractRole(String token) {
+
+        Claims claims = extractAllClaims(token);
+
+        return claims.get("role", String.class);
     }
 
     // Validate token
@@ -67,7 +87,7 @@ public class JwtUtil {
         }
     }
 
-    // Extract claims
+    // Extract all claims
     private Claims extractAllClaims(String token) {
 
         Key key = Keys.hmacShaKeyFor(

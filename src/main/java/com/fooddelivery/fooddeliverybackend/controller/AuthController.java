@@ -14,16 +14,16 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    // Signup API
-    @PostMapping("/signup")
-    public String signup(
+    // REGISTER API
+    @PostMapping("/register")
+    public String register(
             @RequestBody SignupRequest request
     ) {
 
-        return authService.signup(request);
+        return authService.register(request);
     }
 
-    // Login API
+    // LOGIN API
     @PostMapping("/login")
     public String login(
             @RequestBody LoginRequest request
