@@ -1,7 +1,6 @@
 package com.fooddelivery.fooddeliverybackend.controller;
 
-import com.fooddelivery.fooddeliverybackend.entity.Order;
-
+import com.fooddelivery.fooddeliverybackend.dto.OrderResponse;
 import com.fooddelivery.fooddeliverybackend.service.OrderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,31 +13,30 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/order")
-
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
-    // Place Order
+    // PLACE ORDER
     @PostMapping("/place")
     public String placeOrder(
             Authentication authentication
     ) {
 
-        String email = authentication.getName();
-
-        return orderService.placeOrder(email);
+        return orderService.placeOrder(
+                authentication.getName()
+        );
     }
 
-    // Get My Orders
+    // GET MY ORDERS
     @GetMapping("/my")
-    public List<Order> getMyOrders(
+    public List<OrderResponse> getMyOrders(
             Authentication authentication
     ) {
 
-        String email = authentication.getName();
-
-        return orderService.getMyOrders(email);
+        return orderService.getMyOrders(
+                authentication.getName()
+        );
     }
 }

@@ -1,5 +1,7 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
+import com.fooddelivery.fooddeliverybackend.dto.OrderResponse;
+
 import com.fooddelivery.fooddeliverybackend.entity.*;
 
 import com.fooddelivery.fooddeliverybackend.repository.*;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -107,7 +110,7 @@ public class OrderService {
     }
 
     // Get My Orders
-    public List<Order> getMyOrders(
+    public List<OrderResponse> getMyOrders(
             String email
     ) {
 
@@ -117,6 +120,27 @@ public class OrderService {
                         new RuntimeException("User not found")
                 );
 
-        return orderRepository.findByUser(user);
+        List<Order> orders =
+                orderRepository.findByUser(user);
+
+        return orders.stream()
+
+                .map(order -> OrderResponse.builder()
+
+                        .orderId(order.getId())
+
+                        .totalAmount(
+                                order.getTotalAmount()
+                        )
+
+                        .status(order.getStatus())
+
+                        .createdAt(
+                                order.getCreatedAt()
+                        )
+
+                        .build())
+
+                .collect(Collectors.toList());
     }
 }
