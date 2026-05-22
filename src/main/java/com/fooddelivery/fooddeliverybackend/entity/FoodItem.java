@@ -1,12 +1,10 @@
 package com.fooddelivery.fooddeliverybackend.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "food_items")
 
 @Getter
 @Setter
@@ -14,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 
-public class User {
+public class FoodItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,12 +20,15 @@ public class User {
 
     private String name;
 
-    @Column(unique = true)
-    private String email;
+    private String description;
 
-    @JsonIgnore
-    private String password;
+    private Double price;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    private Boolean veg;
+
+    private Boolean available;
+
+    @ManyToOne
+    @JoinColumn(name = "restaurant_id")
+    private Restaurant restaurant;
 }

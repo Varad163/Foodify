@@ -40,22 +40,26 @@ public class SecurityConfig {
 
         http
 
+                // Disable CSRF
                 .csrf(csrf -> csrf.disable())
 
+                // Stateless Session
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
+                // Authorization Rules
                 .authorizeHttpRequests(auth -> auth
 
                         // Public APIs
                         .requestMatchers(
-                                "/api/auth/**"
+                                "/api/auth/**",
+                                "/"
                         ).permitAll()
 
-                        // CUSTOMER
+                        // CUSTOMER / ADMIN / RESTAURANT OWNER
                         .requestMatchers(
                                 "/profile"
                         ).hasAnyRole(
@@ -64,19 +68,31 @@ public class SecurityConfig {
                                 "RESTAURANT_OWNER"
                         )
 
-                        // ADMIN
+                        // ADMIN APIs
                         .requestMatchers(
                                 "/admin/**"
                         ).hasRole("ADMIN")
 
-                        // RESTAURANT OWNER
+                        // RESTAURANT APIs
                         .requestMatchers(
                                 "/restaurant/**"
-                        ).hasRole("RESTAURANT_OWNER")
+                        ).hasAnyRole(
+                                "RESTAURANT_OWNER",
+                                "ADMIN"
+                        )
+                        // FOOD APIs
+                        .requestMatchers(
+                                "/food/**"
+                        ).hasAnyRole(
+                                "RESTAURANT_OWNER",
+                                "ADMIN"
+                        )
 
+                        // All other APIs need authentication
                         .anyRequest().authenticated()
                 )
 
+                // JWT Filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
