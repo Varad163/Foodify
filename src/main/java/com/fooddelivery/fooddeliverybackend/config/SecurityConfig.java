@@ -89,29 +89,38 @@ public class SecurityConfig {
                                 "ADMIN"
                         )
 
-                                // CART APIs
-                                .requestMatchers(
-                                        "/cart/**"
-                                ).hasAnyRole(
-                                        "CUSTOMER",
-                                        "ADMIN"
-                                )
+                        // CART APIs
+                        .requestMatchers(
+                                "/cart/**"
+                        ).hasAnyRole(
+                                "CUSTOMER",
+                                "ADMIN"
+                        )
 
-// ORDER APIs
-                                .requestMatchers(
-                                        "/order/**"
-                                ).hasAnyRole(
-                                        "CUSTOMER",
-                                        "ADMIN"
-                                )
+                        // ORDER APIs
+                        .requestMatchers(
+                                "/order/**"
+                        ).hasAnyRole(
+                                "CUSTOMER",
+                                "ADMIN"
+                        )
 
-// PAYMENT APIs
-                                .requestMatchers(
-                                        "/payment/**"
-                                ).hasAnyRole(
-                                        "CUSTOMER",
-                                        "ADMIN"
-                                )
+                        // PAYMENT APIs
+                        .requestMatchers(
+                                "/payment/**"
+                        ).hasAnyRole(
+                                "CUSTOMER",
+                                "ADMIN"
+                        )
+
+                        // ADDRESS APIs
+                        .requestMatchers(
+                                "/address/**"
+                        ).hasAnyRole(
+                                "CUSTOMER",
+                                "ADMIN"
+                        )
+
                         // All other APIs need authentication
                         .anyRequest().authenticated()
                 )
