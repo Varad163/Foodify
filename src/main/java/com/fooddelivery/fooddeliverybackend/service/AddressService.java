@@ -1,14 +1,20 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
 import com.fooddelivery.fooddeliverybackend.dto.AddressResponse;
+
 import com.fooddelivery.fooddeliverybackend.entity.Address;
 import com.fooddelivery.fooddeliverybackend.entity.Order;
 import com.fooddelivery.fooddeliverybackend.entity.User;
+
 import com.fooddelivery.fooddeliverybackend.repository.AddressRepository;
 import com.fooddelivery.fooddeliverybackend.repository.OrderRepository;
 import com.fooddelivery.fooddeliverybackend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +32,14 @@ public class AddressService {
     @Autowired
     private OrderRepository orderRepository;
 
+    // ==========================
     // ADD ADDRESS
+    // ==========================
+
+    @CacheEvict(
+            value = "addresses",
+            key = "#email"
+    )
     public String addAddress(
             String email,
             Address address
@@ -44,10 +57,21 @@ public class AddressService {
         return "Address Added Successfully";
     }
 
+    // ==========================
     // GET MY ADDRESSES
+    // ==========================
+
+    @Cacheable(
+            value = "addresses",
+            key = "#email"
+    )
     public List<AddressResponse> myAddresses(
             String email
     ) {
+
+        System.out.println(
+                "Fetching addresses from DB..."
+        );
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
@@ -80,10 +104,21 @@ public class AddressService {
                 .collect(Collectors.toList());
     }
 
-    // GET ADDRESS OF ORDER
+    // ==========================
+    // GET ORDER ADDRESS
+    // ==========================
+
+    @Cacheable(
+            value = "orderAddresses",
+            key = "#orderId"
+    )
     public AddressResponse getOrderAddress(
             Long orderId
     ) {
+
+        System.out.println(
+                "Fetching order address from DB..."
+        );
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() ->

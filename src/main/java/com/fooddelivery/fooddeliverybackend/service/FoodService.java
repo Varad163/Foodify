@@ -3,10 +3,15 @@ package com.fooddelivery.fooddeliverybackend.service;
 import com.fooddelivery.fooddeliverybackend.dto.FoodRequest;
 import com.fooddelivery.fooddeliverybackend.entity.FoodItem;
 import com.fooddelivery.fooddeliverybackend.entity.Restaurant;
+
 import com.fooddelivery.fooddeliverybackend.repository.FoodRepository;
 import com.fooddelivery.fooddeliverybackend.repository.RestaurantRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +25,17 @@ public class FoodService {
     @Autowired
     private RestaurantRepository restaurantRepository;
 
-    // Add Food
+    // ==========================
+    // ADD FOOD
+    // ==========================
+
+    @CacheEvict(
+            value = {
+                    "foods",
+                    "restaurantFoods"
+            },
+            allEntries = true
+    )
     public String addFood(
             FoodRequest request
     ) {
@@ -55,16 +70,33 @@ public class FoodService {
         return "Food Added Successfully";
     }
 
-    // Get All Food
+    // ==========================
+    // GET ALL FOOD
+    // ==========================
+
+    @Cacheable(value = "foods")
     public List<FoodItem> getAllFood() {
+
+        System.out.println("Fetching foods from DB...");
 
         return foodRepository.findAll();
     }
 
-    // Get Food By Restaurant
+    // ==========================
+    // GET FOOD BY RESTAURANT
+    // ==========================
+
+    @Cacheable(
+            value = "restaurantFoods",
+            key = "#restaurantId"
+    )
     public List<FoodItem> getFoodByRestaurant(
             Long restaurantId
     ) {
+
+        System.out.println(
+                "Fetching restaurant foods from DB..."
+        );
 
         return foodRepository
                 .findByRestaurantId(restaurantId);
