@@ -10,7 +10,11 @@ import java.util.Optional;
 public interface DeliveryPartnerRepository
         extends JpaRepository<DeliveryPartner, Long> {
 
-    Optional<DeliveryPartner> findByUser(User user);
+    // FIND AVAILABLE DELIVERY PARTNER
+    Optional<DeliveryPartner>
+    findFirstByAvailableTrue();
 
-    Optional<DeliveryPartner> findFirstByAvailableTrue();
+    // FIND DELIVERY PARTNER BY USER
+    Optional<DeliveryPartner>
+    findByUser(User user);
 }

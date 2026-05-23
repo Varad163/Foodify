@@ -16,31 +16,31 @@ import java.time.LocalDateTime;
 @Builder
 
 public class Order {
-    @ManyToOne
-    private DeliveryPartner deliveryPartner;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Long id;
 
     // CUSTOMER
     @ManyToOne
     @JoinColumn(name = "user_id")
-
     private User user;
 
     // RESTAURANT
     @ManyToOne
     @JoinColumn(name = "restaurant_id")
-
     private Restaurant restaurant;
+
+    // DELIVERY PARTNER
+    @ManyToOne
+    @JoinColumn(name = "delivery_partner_id")
+    private DeliveryPartner deliveryPartner;
 
     // TOTAL
     private Double totalAmount;
 
     // STATUS
     @Enumerated(EnumType.STRING)
-
     private OrderStatus status;
 
     // CREATED TIME
