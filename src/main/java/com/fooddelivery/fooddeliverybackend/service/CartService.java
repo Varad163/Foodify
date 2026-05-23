@@ -52,7 +52,7 @@ public class CartService {
                 });
 
         FoodItem foodItem = foodRepository
-                .findById(request.getFoodItemId())
+                .findById(request.getFoodId())
                 .orElseThrow(() ->
                         new RuntimeException(
                                 "Food item not found"

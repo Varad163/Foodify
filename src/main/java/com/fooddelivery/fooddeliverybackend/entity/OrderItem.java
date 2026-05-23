@@ -16,17 +16,20 @@ public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long id;
 
-    // Order reference
     @ManyToOne
     @JoinColumn(name = "order_id")
+
     private Order order;
 
-    // Snapshot data
-    private String foodName;
+    @ManyToOne
+    @JoinColumn(name = "food_id")
 
-    private Double price;
+    private FoodItem foodItem;
 
     private Integer quantity;
+
+    private Double price;
 }

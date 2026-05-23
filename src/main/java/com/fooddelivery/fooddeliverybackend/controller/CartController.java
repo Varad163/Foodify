@@ -28,7 +28,15 @@ public class CartController {
             Authentication authentication
     ) {
 
+        System.out.println(authentication);
+
+        if (authentication == null) {
+            return "AUTH IS NULL";
+        }
+
         String email = authentication.getName();
+
+        System.out.println(email);
 
         return cartService.addToCart(
                 request,

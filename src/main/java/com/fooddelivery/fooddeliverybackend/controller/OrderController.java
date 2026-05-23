@@ -1,8 +1,7 @@
 package com.fooddelivery.fooddeliverybackend.controller;
 
+import com.fooddelivery.fooddeliverybackend.dto.OrderDetailsResponse;
 import com.fooddelivery.fooddeliverybackend.dto.OrderResponse;
-
-import com.fooddelivery.fooddeliverybackend.entity.OrderStatus;
 
 import com.fooddelivery.fooddeliverybackend.service.OrderService;
 
@@ -24,38 +23,55 @@ public class OrderController {
 
     // PLACE ORDER
     @PostMapping("/place")
+
     public String placeOrder(
             Authentication authentication
     ) {
 
-        return orderService.placeOrder(
-                authentication.getName()
-        );
+        String email =
+                authentication.getName();
+
+        return orderService.placeOrder(email);
     }
 
-    // GET MY ORDERS
+    // MY ORDERS
     @GetMapping("/my")
-    public List<OrderResponse> getMyOrders(
+
+    public List<OrderResponse> myOrders(
             Authentication authentication
     ) {
 
-        return orderService.getMyOrders(
-                authentication.getName()
-        );
+        String email =
+                authentication.getName();
+
+        return orderService.getMyOrders(email);
     }
 
     // UPDATE ORDER STATUS
     @PutMapping("/status/{orderId}")
+
     public String updateOrderStatus(
 
             @PathVariable Long orderId,
 
-            @RequestParam OrderStatus status
+            @RequestParam String status
     ) {
 
         return orderService.updateOrderStatus(
                 orderId,
                 status
+        );
+    }
+
+    // ORDER DETAILS
+    @GetMapping("/details/{orderId}")
+
+    public OrderDetailsResponse getOrderDetails(
+            @PathVariable Long orderId
+    ) {
+
+        return orderService.getOrderDetails(
+                orderId
         );
     }
 }

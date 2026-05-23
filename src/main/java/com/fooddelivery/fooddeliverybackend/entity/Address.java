@@ -18,11 +18,6 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     private String fullName;
 
     private String phone;
@@ -34,4 +29,14 @@ public class Address {
     private String state;
 
     private String pincode;
+
+    // USER
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // ORDER
+    @OneToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
 }

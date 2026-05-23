@@ -14,7 +14,5 @@ public interface PaymentRepository
             String email
     );
 
-    Payment findByOrder(
-            Order order
-    );
+    Payment findByOrder(Order order);
 }

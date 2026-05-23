@@ -1,8 +1,12 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
 import com.fooddelivery.fooddeliverybackend.dto.RestaurantRequest;
+import com.fooddelivery.fooddeliverybackend.entity.Order;
+import com.fooddelivery.fooddeliverybackend.entity.OrderStatus;
 import com.fooddelivery.fooddeliverybackend.entity.Restaurant;
 import com.fooddelivery.fooddeliverybackend.entity.User;
+
+import com.fooddelivery.fooddeliverybackend.repository.OrderRepository;
 import com.fooddelivery.fooddeliverybackend.repository.RestaurantRepository;
 import com.fooddelivery.fooddeliverybackend.repository.UserRepository;
 
@@ -20,7 +24,13 @@ public class RestaurantService {
     @Autowired
     private UserRepository userRepository;
 
-    // Create Restaurant
+    @Autowired
+    private OrderRepository orderRepository;
+
+    // =====================================
+    // CREATE RESTAURANT
+    // =====================================
+
     public String createRestaurant(
             RestaurantRequest request,
             String email
@@ -29,7 +39,9 @@ public class RestaurantService {
         User owner = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new RuntimeException(
+                                "User not found"
+                        )
                 );
 
         Restaurant restaurant = new Restaurant();
@@ -46,9 +58,67 @@ public class RestaurantService {
         return "Restaurant Created Successfully";
     }
 
-    // Get All Restaurants
+    // =====================================
+    // GET ALL RESTAURANTS
+    // =====================================
+
     public List<Restaurant> getAllRestaurants() {
 
         return restaurantRepository.findAll();
+    }
+
+    // =====================================
+    // GET RESTAURANT ORDERS
+    // =====================================
+
+    public List<Order> getRestaurantOrders(
+            String email
+    ) {
+
+        User owner = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "User not found"
+                        )
+                );
+
+        Restaurant restaurant =
+                restaurantRepository.findByOwner(owner)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Restaurant not found"
+                                )
+                        );
+
+        return orderRepository.findByRestaurant(
+                restaurant
+        );
+    }
+
+    // =====================================
+    // UPDATE ORDER STATUS
+    // =====================================
+
+    public String updateOrderStatus(
+            Long orderId,
+            String status
+    ) {
+
+        Order order = orderRepository
+                .findById(orderId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Order not found"
+                        )
+                );
+
+        order.setStatus(
+                OrderStatus.valueOf(status)
+        );
+
+        orderRepository.save(order);
+
+        return "Order updated to " + status;
     }
 }

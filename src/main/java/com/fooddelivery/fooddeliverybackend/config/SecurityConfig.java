@@ -40,20 +40,20 @@ public class SecurityConfig {
 
         http
 
-                // Disable CSRF
+                // DISABLE CSRF
                 .csrf(csrf -> csrf.disable())
 
-                // Stateless Session
+                // STATELESS SESSION
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // Authorization Rules
+                // AUTHORIZATION RULES
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public APIs
+                        // PUBLIC APIs
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/"
@@ -65,7 +65,8 @@ public class SecurityConfig {
                         ).hasAnyRole(
                                 "CUSTOMER",
                                 "ADMIN",
-                                "RESTAURANT_OWNER"
+                                "RESTAURANT_OWNER",
+                                "DELIVERY_PARTNER"
                         )
 
                         // ADMIN APIs
@@ -102,7 +103,8 @@ public class SecurityConfig {
                                 "/order/**"
                         ).hasAnyRole(
                                 "CUSTOMER",
-                                "ADMIN"
+                                "ADMIN",
+                                "RESTAURANT_OWNER"
                         )
 
                         // PAYMENT APIs
@@ -110,6 +112,14 @@ public class SecurityConfig {
                                 "/payment/**"
                         ).hasAnyRole(
                                 "CUSTOMER",
+                                "ADMIN"
+                        )
+
+                        // DELIVERY APIs
+                        .requestMatchers(
+                                "/delivery/**"
+                        ).hasAnyRole(
+                                "DELIVERY_PARTNER",
                                 "ADMIN"
                         )
 
@@ -121,11 +131,11 @@ public class SecurityConfig {
                                 "ADMIN"
                         )
 
-                        // All other APIs need authentication
+                        // ALL OTHER APIs
                         .anyRequest().authenticated()
                 )
 
-                // JWT Filter
+                // JWT FILTER
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

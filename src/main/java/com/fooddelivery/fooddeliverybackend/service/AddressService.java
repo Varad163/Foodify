@@ -1,16 +1,14 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
-import com.fooddelivery.fooddeliverybackend.dto.AddressRequest;
 import com.fooddelivery.fooddeliverybackend.dto.AddressResponse;
-
 import com.fooddelivery.fooddeliverybackend.entity.Address;
+import com.fooddelivery.fooddeliverybackend.entity.Order;
 import com.fooddelivery.fooddeliverybackend.entity.User;
-
 import com.fooddelivery.fooddeliverybackend.repository.AddressRepository;
+import com.fooddelivery.fooddeliverybackend.repository.OrderRepository;
 import com.fooddelivery.fooddeliverybackend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,35 +23,21 @@ public class AddressService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     // ADD ADDRESS
     public String addAddress(
-            AddressRequest request,
-            String email
+            String email,
+            Address address
     ) {
 
-        User user = userRepository
-                .findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found")
                 );
 
-        Address address = Address.builder()
-
-                .user(user)
-
-                .fullName(request.getFullName())
-
-                .phone(request.getPhone())
-
-                .street(request.getStreet())
-
-                .city(request.getCity())
-
-                .state(request.getState())
-
-                .pincode(request.getPincode())
-
-                .build();
+        address.setUser(user);
 
         addressRepository.save(address);
 
@@ -65,8 +49,13 @@ public class AddressService {
             String email
     ) {
 
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
+
         List<Address> addresses =
-                addressRepository.findByUserEmail(email);
+                addressRepository.findByUser(user);
 
         return addresses.stream()
 
@@ -89,5 +78,37 @@ public class AddressService {
                         .build())
 
                 .collect(Collectors.toList());
+    }
+
+    // GET ADDRESS OF ORDER
+    public AddressResponse getOrderAddress(
+            Long orderId
+    ) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new RuntimeException("Order not found")
+                );
+
+        Address address =
+                addressRepository.findByOrder(order);
+
+        return AddressResponse.builder()
+
+                .id(address.getId())
+
+                .fullName(address.getFullName())
+
+                .phone(address.getPhone())
+
+                .street(address.getStreet())
+
+                .city(address.getCity())
+
+                .state(address.getState())
+
+                .pincode(address.getPincode())
+
+                .build();
     }
 }

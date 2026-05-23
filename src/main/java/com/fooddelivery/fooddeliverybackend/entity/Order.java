@@ -1,6 +1,7 @@
 package com.fooddelivery.fooddeliverybackend.entity;
 
 import jakarta.persistence.*;
+
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -15,20 +16,33 @@ import java.time.LocalDateTime;
 @Builder
 
 public class Order {
-
+    @ManyToOne
+    private DeliveryPartner deliveryPartner;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long id;
 
-    // Customer
+    // CUSTOMER
     @ManyToOne
     @JoinColumn(name = "user_id")
+
     private User user;
 
+    // RESTAURANT
+    @ManyToOne
+    @JoinColumn(name = "restaurant_id")
+
+    private Restaurant restaurant;
+
+    // TOTAL
     private Double totalAmount;
 
+    // STATUS
     @Enumerated(EnumType.STRING)
+
     private OrderStatus status;
 
+    // CREATED TIME
     private LocalDateTime createdAt;
 }

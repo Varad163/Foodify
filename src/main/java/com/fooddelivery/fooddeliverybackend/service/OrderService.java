@@ -1,9 +1,9 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
+import com.fooddelivery.fooddeliverybackend.dto.OrderDetailsResponse;
+import com.fooddelivery.fooddeliverybackend.dto.OrderItemResponse;
 import com.fooddelivery.fooddeliverybackend.dto.OrderResponse;
-
 import com.fooddelivery.fooddeliverybackend.entity.*;
-
 import com.fooddelivery.fooddeliverybackend.repository.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,148 +31,156 @@ public class OrderService {
     @Autowired
     private OrderItemRepository orderItemRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private AddressRepository addressRepository;
+
+    // ==========================
     // PLACE ORDER
-    public String placeOrder(
-            String email
-    ) {
+    // ==========================
+    public String placeOrder(String email) {
 
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "User not found"
-                        )
-                );
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository
-                .findByUser(user)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Cart not found"
-                        )
-                );
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        List<CartItem> cartItems =
-                cartItemRepository.findByCart(cart);
+        List<CartItem> cartItems = cartItemRepository.findByCart(cart);
 
         if (cartItems.isEmpty()) {
-
-            throw new RuntimeException(
-                    "Cart is empty"
-            );
+            return "Cart is empty";
         }
 
-        // Calculate Total
+        // Calculate total
         double total = 0;
-
         for (CartItem item : cartItems) {
-
-            total += item.getFoodItem().getPrice()
-                    * item.getQuantity();
+            total += item.getFoodItem().getPrice() * item.getQuantity();
         }
 
-        // Create Order
-        Order order = new Order();
+        // Get restaurant from first food item
+        Restaurant restaurant = cartItems.get(0).getFoodItem().getRestaurant();
 
-        order.setUser(user);
+        // Create order
+        Order order = Order.builder()
+                .user(user)
+                .restaurant(restaurant)
+                .totalAmount(total)
+                .status(OrderStatus.PLACED)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        order.setTotalAmount(total);
+        Order savedOrder = orderRepository.save(order);
 
-        order.setStatus(OrderStatus.PLACED);
-
-        order.setCreatedAt(LocalDateTime.now());
-
-        Order savedOrder =
-                orderRepository.save(order);
-
-        // Create Order Items
-        for (CartItem item : cartItems) {
-
-            OrderItem orderItem =
-                    new OrderItem();
-
-            orderItem.setOrder(savedOrder);
-
-            orderItem.setFoodName(
-                    item.getFoodItem().getName()
-            );
-
-            orderItem.setPrice(
-                    item.getFoodItem().getPrice()
-            );
-
-            orderItem.setQuantity(
-                    item.getQuantity()
-            );
-
+        // Save order items
+        for (CartItem cartItem : cartItems) {
+            OrderItem orderItem = OrderItem.builder()
+                    .order(savedOrder)
+                    .foodItem(cartItem.getFoodItem())
+                    .quantity(cartItem.getQuantity())
+                    .price(cartItem.getFoodItem().getPrice())
+                    .build();
             orderItemRepository.save(orderItem);
         }
 
-        // Clear Cart
+        // Link latest address with order
+        List<Address> addresses = addressRepository.findByUser(user);
+        if (!addresses.isEmpty()) {
+            Address address = addresses.get(addresses.size() - 1);
+            address.setOrder(savedOrder);
+            addressRepository.save(address);
+        }
+
+        // Clear cart
         cartItemRepository.deleteAll(cartItems);
 
-        return "Order Placed Successfully";
+        return "Order placed successfully";
     }
 
+    // ==========================
     // GET MY ORDERS
-    public List<OrderResponse> getMyOrders(
-            String email
-    ) {
+    // ==========================
+    public List<OrderResponse> getMyOrders(String email) {
 
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "User not found"
-                        )
-                );
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Order> orders =
-                orderRepository.findByUser(user);
+        List<Order> orders = orderRepository.findByUser(user);
 
         return orders.stream()
-
                 .map(order -> OrderResponse.builder()
-
                         .orderId(order.getId())
-
-                        .totalAmount(
-                                order.getTotalAmount()
-                        )
-
-                        .status(
-                                order.getStatus().name()
-                        )
-
-                        .createdAt(
-                                order.getCreatedAt()
-                        )
-
+                        .totalAmount(order.getTotalAmount())
+                        .status(order.getStatus().name())
+                        .createdAt(order.getCreatedAt())
                         .build())
-
                 .collect(Collectors.toList());
     }
 
+    // ==========================
     // UPDATE ORDER STATUS
-    public String updateOrderStatus(
+    // ==========================
+    public String updateOrderStatus(Long orderId, String status) {
 
-            Long orderId,
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
-            OrderStatus status
-    ) {
-
-        Order order = orderRepository
-                .findById(orderId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Order not found"
-                        )
-                );
-
-        order.setStatus(status);
-
+        order.setStatus(OrderStatus.valueOf(status));
         orderRepository.save(order);
 
-        return "Order status updated successfully";
+        return "Order status updated";
+    }
+
+    // ==========================
+    // ORDER DETAILS
+    // ==========================
+    public OrderDetailsResponse getOrderDetails(Long orderId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        Payment payment = paymentRepository.findByOrder(order);
+
+        Address address = addressRepository.findByOrder(order);
+
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
+
+        List<OrderItemResponse> itemResponses = orderItems.stream()
+                .map(item -> OrderItemResponse.builder()
+                        .foodName(item.getFoodItem().getName())
+                        .quantity(item.getQuantity())
+                        .price(item.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+
+        return OrderDetailsResponse.builder()
+                .orderId(order.getId())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus().name())
+                .paymentMethod(payment != null ? payment.getPaymentMethod() : "NOT_PAID")
+                .paymentStatus(payment != null ? payment.getStatus().name() : "PENDING")
+                .city(address != null ? address.getCity() : "N/A")
+                .street(address != null ? address.getStreet() : "N/A")
+                .items(itemResponses)
+                .build();
+    }
+
+    // ==========================
+    // RESTAURANT OWNER VIEW ORDERS
+    // ==========================
+    public List<OrderResponse> getOrdersForRestaurant(Restaurant restaurant) {
+
+        List<Order> orders = orderRepository.findByRestaurant(restaurant);
+
+        return orders.stream()
+                .map(order -> OrderResponse.builder()
+                        .orderId(order.getId())
+                        .totalAmount(order.getTotalAmount())
+                        .status(order.getStatus().name())
+                        .createdAt(order.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
