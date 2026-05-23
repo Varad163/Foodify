@@ -1,5 +1,7 @@
 package com.fooddelivery.fooddeliverybackend.exception;
 
+import com.fooddelivery.fooddeliverybackend.dto.ApiResponse;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -7,7 +9,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +17,8 @@ public class GlobalExceptionHandler {
 
     // VALIDATION ERRORS
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+    public ResponseEntity<ApiResponse<Map<String, String>>>
+    handleValidationExceptions(
             MethodArgumentNotValidException ex
     ) {
 
@@ -32,27 +34,56 @@ public class GlobalExceptionHandler {
                         )
                 );
 
+        ApiResponse<Map<String, String>> response =
+                new ApiResponse<>(
+                        false,
+                        "Validation failed",
+                        errors
+                );
+
         return new ResponseEntity<>(
-                errors,
+                response,
                 HttpStatus.BAD_REQUEST
         );
     }
 
-    // GENERAL EXCEPTIONS
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiError> handleRuntimeException(
-            RuntimeException ex
+    // USER ALREADY EXISTS
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Object>>
+    handleUserAlreadyExistsException(
+            UserAlreadyExistsException ex
     ) {
 
-        ApiError error = new ApiError(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-                LocalDateTime.now()
-        );
+        ApiResponse<Object> response =
+                new ApiResponse<>(
+                        false,
+                        ex.getMessage(),
+                        null
+                );
 
         return new ResponseEntity<>(
-                error,
+                response,
                 HttpStatus.BAD_REQUEST
+        );
+    }
+
+    // USER NOT FOUND
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>>
+    handleUserNotFoundException(
+            UserNotFoundException ex
+    ) {
+
+        ApiResponse<Object> response =
+                new ApiResponse<>(
+                        false,
+                        ex.getMessage(),
+                        null
+                );
+
+        return new ResponseEntity<>(
+                response,
+                HttpStatus.NOT_FOUND
         );
     }
 }
