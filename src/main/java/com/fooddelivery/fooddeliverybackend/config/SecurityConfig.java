@@ -56,7 +56,10 @@ public class SecurityConfig {
                         // PUBLIC APIs
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/"
+                                "/",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
                         ).permitAll()
 
                         // PROFILE APIs

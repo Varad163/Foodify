@@ -4,6 +4,8 @@ import com.fooddelivery.fooddeliverybackend.dto.LoginRequest;
 import com.fooddelivery.fooddeliverybackend.dto.SignupRequest;
 import com.fooddelivery.fooddeliverybackend.service.AuthService;
 
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,7 @@ public class AuthController {
     // REGISTER API
     @PostMapping("/register")
     public String register(
-            @RequestBody SignupRequest request
+            @Valid @RequestBody SignupRequest request
     ) {
 
         return authService.register(request);
@@ -26,7 +28,7 @@ public class AuthController {
     // LOGIN API
     @PostMapping("/login")
     public String login(
-            @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request
     ) {
 
         return authService.login(request);
