@@ -1,5 +1,6 @@
 package com.fooddelivery.fooddeliverybackend.controller;
 
+import com.fooddelivery.fooddeliverybackend.dto.ApiResponse;
 import com.fooddelivery.fooddeliverybackend.dto.OrderDetailsResponse;
 import com.fooddelivery.fooddeliverybackend.dto.OrderResponse;
 
@@ -15,63 +16,102 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/order")
-
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
+    // ==========================
     // PLACE ORDER
+    // ==========================
+
     @PostMapping("/place")
-
-    public String placeOrder(
+    public ApiResponse<String> placeOrder(
             Authentication authentication
     ) {
 
         String email =
                 authentication.getName();
 
-        return orderService.placeOrder(email);
+        String response =
+                orderService.placeOrder(email);
+
+        return new ApiResponse<>(
+                true,
+                response,
+                null
+        );
     }
 
+    // ==========================
     // MY ORDERS
-    @GetMapping("/my")
+    // ==========================
 
-    public List<OrderResponse> myOrders(
+    @GetMapping("/my")
+    public ApiResponse<List<OrderResponse>>
+    myOrders(
             Authentication authentication
     ) {
 
         String email =
                 authentication.getName();
 
-        return orderService.getMyOrders(email);
+        List<OrderResponse> orders =
+                orderService.getMyOrders(email);
+
+        return new ApiResponse<>(
+                true,
+                "Orders fetched successfully",
+                orders
+        );
     }
 
+    // ==========================
     // UPDATE ORDER STATUS
-    @PutMapping("/status/{orderId}")
+    // ==========================
 
-    public String updateOrderStatus(
+    @PutMapping("/status/{orderId}")
+    public ApiResponse<String>
+    updateOrderStatus(
 
             @PathVariable Long orderId,
 
             @RequestParam String status
     ) {
 
-        return orderService.updateOrderStatus(
-                orderId,
-                status
+        String response =
+                orderService.updateOrderStatus(
+                        orderId,
+                        status
+                );
+
+        return new ApiResponse<>(
+                true,
+                response,
+                null
         );
     }
 
+    // ==========================
     // ORDER DETAILS
-    @GetMapping("/details/{orderId}")
+    // ==========================
 
-    public OrderDetailsResponse getOrderDetails(
+    @GetMapping("/details/{orderId}")
+    public ApiResponse<OrderDetailsResponse>
+    getOrderDetails(
+
             @PathVariable Long orderId
     ) {
 
-        return orderService.getOrderDetails(
-                orderId
+        OrderDetailsResponse response =
+                orderService.getOrderDetails(
+                        orderId
+                );
+
+        return new ApiResponse<>(
+                true,
+                "Order details fetched successfully",
+                response
         );
     }
 }

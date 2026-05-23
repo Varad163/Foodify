@@ -2,16 +2,21 @@ package com.fooddelivery.fooddeliverybackend.service;
 
 import com.fooddelivery.fooddeliverybackend.dto.OrderDetailsResponse;
 import com.fooddelivery.fooddeliverybackend.dto.OrderItemResponse;
+import com.fooddelivery.fooddeliverybackend.dto.OrderPlacedEvent;
 import com.fooddelivery.fooddeliverybackend.dto.OrderResponse;
 
 import com.fooddelivery.fooddeliverybackend.entity.*;
 
+import com.fooddelivery.fooddeliverybackend.kafka.OrderProducer;
+
 import com.fooddelivery.fooddeliverybackend.repository.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,13 +47,18 @@ public class OrderService {
     @Autowired
     private DeliveryPartnerRepository deliveryPartnerRepository;
 
+    @Autowired
+    private OrderProducer orderProducer;
+
     // ==========================
     // PLACE ORDER
     // ==========================
+
     public String placeOrder(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
+
                         new RuntimeException(
                                 "User not found"
                         )
@@ -56,6 +66,7 @@ public class OrderService {
 
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() ->
+
                         new RuntimeException(
                                 "Cart not found"
                         )
@@ -65,10 +76,14 @@ public class OrderService {
                 cartItemRepository.findByCart(cart);
 
         if (cartItems.isEmpty()) {
+
             return "Cart is empty";
         }
 
-        // Calculate total
+        // ==========================
+        // CALCULATE TOTAL
+        // ==========================
+
         double total = 0;
 
         for (CartItem item : cartItems) {
@@ -77,13 +92,19 @@ public class OrderService {
                     .getPrice() * item.getQuantity();
         }
 
-        // Get restaurant
+        // ==========================
+        // GET RESTAURANT
+        // ==========================
+
         Restaurant restaurant =
                 cartItems.get(0)
                         .getFoodItem()
                         .getRestaurant();
 
-        // Create order
+        // ==========================
+        // CREATE ORDER
+        // ==========================
+
         Order order = Order.builder()
                 .user(user)
                 .restaurant(restaurant)
@@ -95,25 +116,58 @@ public class OrderService {
         Order savedOrder =
                 orderRepository.save(order);
 
-        // Save order items
+        // ==========================
+        // SEND KAFKA EVENT
+        // ==========================
+
+        OrderPlacedEvent event =
+                new OrderPlacedEvent(
+
+                        savedOrder.getId(),
+
+                        user.getId(),
+
+                        restaurant.getId(),
+
+                        savedOrder.getTotalAmount()
+                );
+
+        orderProducer.sendOrderEvent(event);
+
+        // ==========================
+        // SAVE ORDER ITEMS
+        // ==========================
+
         for (CartItem cartItem : cartItems) {
 
             OrderItem orderItem =
                     OrderItem.builder()
+
                             .order(savedOrder)
-                            .foodItem(cartItem.getFoodItem())
-                            .quantity(cartItem.getQuantity())
+
+                            .foodItem(
+                                    cartItem.getFoodItem()
+                            )
+
+                            .quantity(
+                                    cartItem.getQuantity()
+                            )
+
                             .price(
                                     cartItem
                                             .getFoodItem()
                                             .getPrice()
                             )
+
                             .build();
 
             orderItemRepository.save(orderItem);
         }
 
-        // Link address
+        // ==========================
+        // LINK ADDRESS
+        // ==========================
+
         List<Address> addresses =
                 addressRepository.findByUser(user);
 
@@ -129,7 +183,10 @@ public class OrderService {
             addressRepository.save(address);
         }
 
-        // Clear cart
+        // ==========================
+        // CLEAR CART
+        // ==========================
+
         cartItemRepository.deleteAll(cartItems);
 
         return "Order placed successfully";
@@ -138,13 +195,16 @@ public class OrderService {
     // ==========================
     // GET MY ORDERS
     // ==========================
+
     public List<OrderResponse> getMyOrders(
             String email
     ) {
 
         User user = userRepository
                 .findByEmail(email)
+
                 .orElseThrow(() ->
+
                         new RuntimeException(
                                 "User not found"
                         )
@@ -154,34 +214,46 @@ public class OrderService {
                 orderRepository.findByUser(user);
 
         return orders.stream()
+
                 .map(order ->
+
                         OrderResponse.builder()
+
                                 .orderId(order.getId())
+
                                 .totalAmount(
                                         order.getTotalAmount()
                                 )
+
                                 .status(
                                         order.getStatus().name()
                                 )
+
                                 .createdAt(
                                         order.getCreatedAt()
                                 )
+
                                 .build()
                 )
+
                 .collect(Collectors.toList());
     }
 
     // ==========================
     // UPDATE ORDER STATUS
     // ==========================
+
     public String updateOrderStatus(
+
             Long orderId,
             String status
     ) {
 
         Order order = orderRepository
                 .findById(orderId)
+
                 .orElseThrow(() ->
+
                         new RuntimeException(
                                 "Order not found"
                         )
@@ -195,12 +267,15 @@ public class OrderService {
         // ==========================
         // ASSIGN DELIVERY PARTNER
         // ==========================
+
         if (newStatus == OrderStatus.CONFIRMED) {
 
             DeliveryPartner partner =
                     deliveryPartnerRepository
                             .findFirstByAvailableTrue()
+
                             .orElseThrow(() ->
+
                                     new RuntimeException(
                                             "No delivery partner available"
                                     )
@@ -217,6 +292,7 @@ public class OrderService {
         // ==========================
         // FREE DELIVERY PARTNER
         // ==========================
+
         if (newStatus == OrderStatus.DELIVERED) {
 
             DeliveryPartner partner =
@@ -238,13 +314,16 @@ public class OrderService {
     // ==========================
     // ORDER DETAILS
     // ==========================
+
     public OrderDetailsResponse getOrderDetails(
             Long orderId
     ) {
 
         Order order = orderRepository
                 .findById(orderId)
+
                 .orElseThrow(() ->
+
                         new RuntimeException(
                                 "Order not found"
                         )
@@ -261,53 +340,70 @@ public class OrderService {
 
         List<OrderItemResponse> itemResponses =
                 orderItems.stream()
+
                         .map(item ->
+
                                 OrderItemResponse.builder()
+
                                         .foodName(
                                                 item.getFoodItem()
                                                         .getName()
                                         )
+
                                         .quantity(
                                                 item.getQuantity()
                                         )
+
                                         .price(
                                                 item.getPrice()
                                         )
+
                                         .build()
                         )
+
                         .collect(Collectors.toList());
 
         return OrderDetailsResponse.builder()
+
                 .orderId(order.getId())
+
                 .totalAmount(order.getTotalAmount())
+
                 .status(order.getStatus().name())
+
                 .paymentMethod(
                         payment != null
                                 ? payment.getPaymentMethod()
                                 : "NOT_PAID"
                 )
+
                 .paymentStatus(
                         payment != null
                                 ? payment.getStatus().name()
                                 : "PENDING"
                 )
+
                 .city(
                         address != null
                                 ? address.getCity()
                                 : "N/A"
                 )
+
                 .street(
                         address != null
                                 ? address.getStreet()
                                 : "N/A"
                 )
+
                 .items(itemResponses)
+
                 .build();
     }
 
     // ==========================
     // RESTAURANT OWNER VIEW ORDERS
     // ==========================
+
     public List<OrderResponse> getOrdersForRestaurant(
             Restaurant restaurant
     ) {
@@ -318,20 +414,28 @@ public class OrderService {
                 );
 
         return orders.stream()
+
                 .map(order ->
+
                         OrderResponse.builder()
+
                                 .orderId(order.getId())
+
                                 .totalAmount(
                                         order.getTotalAmount()
                                 )
+
                                 .status(
                                         order.getStatus().name()
                                 )
+
                                 .createdAt(
                                         order.getCreatedAt()
                                 )
+
                                 .build()
                 )
+
                 .collect(Collectors.toList());
     }
 }
