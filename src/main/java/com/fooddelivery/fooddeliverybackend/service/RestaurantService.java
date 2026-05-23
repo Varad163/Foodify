@@ -14,6 +14,10 @@ import com.fooddelivery.fooddeliverybackend.repository.RestaurantRepository;
 import com.fooddelivery.fooddeliverybackend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,6 +40,8 @@ public class RestaurantService {
     // =========================
     // CREATE RESTAURANT
     // =========================
+
+    @CacheEvict(value = "restaurants", allEntries = true)
 
     public String createRestaurant(
             RestaurantRequest request,
@@ -67,6 +73,8 @@ public class RestaurantService {
     // =========================
     // GET ALL RESTAURANTS
     // =========================
+
+    @Cacheable(value = "restaurants")
 
     public List<Restaurant> getAllRestaurants() {
 

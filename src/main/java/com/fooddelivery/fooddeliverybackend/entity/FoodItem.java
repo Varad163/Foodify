@@ -3,6 +3,8 @@ package com.fooddelivery.fooddeliverybackend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "food_items")
 
@@ -12,7 +14,9 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 
-public class FoodItem {
+public class FoodItem implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
