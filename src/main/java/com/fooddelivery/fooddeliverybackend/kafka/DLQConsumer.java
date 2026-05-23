@@ -7,23 +7,19 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotificationConsumer {
+public class DLQConsumer {
 
     @KafkaListener(
-            topics = "order-events",
-            groupId = "notification-group"
+            topics = "order-events-dlt",
+            groupId = "dlq-group"
     )
-    public void sendNotification(
+    public void consumeDeadLetter(
             OrderPlacedEvent event
     ) {
 
         System.out.println(
-                "NOTIFICATION SERVICE -> Processing..."
-        );
-
-        // FORCE FAILURE
-        throw new RuntimeException(
-                "Notification service failed"
+                "DLQ RECEIVED FAILED EVENT -> "
+                        + event
         );
     }
 }

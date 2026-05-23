@@ -7,23 +7,19 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotificationConsumer {
+public class NotificationConsumer1 {
 
     @KafkaListener(
             topics = "order-events",
             groupId = "notification-group"
     )
-    public void sendNotification(
+    public void consume(
             OrderPlacedEvent event
     ) {
 
         System.out.println(
-                "NOTIFICATION SERVICE -> Processing..."
-        );
-
-        // FORCE FAILURE
-        throw new RuntimeException(
-                "Notification service failed"
+                "Consumer 1 processed order: "
+                        + event.getOrderId()
         );
     }
 }
