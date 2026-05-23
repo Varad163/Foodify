@@ -1,6 +1,7 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
 import com.fooddelivery.fooddeliverybackend.dto.FoodRequest;
+
 import com.fooddelivery.fooddeliverybackend.entity.FoodItem;
 import com.fooddelivery.fooddeliverybackend.entity.Restaurant;
 
@@ -9,12 +10,15 @@ import com.fooddelivery.fooddeliverybackend.repository.RestaurantRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class FoodService {
@@ -71,34 +75,56 @@ public class FoodService {
     }
 
     // ==========================
-    // GET ALL FOOD
+    // GET ALL FOOD WITH PAGINATION
     // ==========================
 
     @Cacheable(value = "foods")
-    public List<FoodItem> getAllFood() {
+    public Page<FoodItem> getAllFood(
 
-        System.out.println("Fetching foods from DB...");
+            int page,
+            int size,
+            String sortBy
+    ) {
 
-        return foodRepository.findAll();
+        System.out.println(
+                "Fetching foods from DB..."
+        );
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(sortBy)
+        );
+
+        return foodRepository.findAll(pageable);
     }
 
     // ==========================
     // GET FOOD BY RESTAURANT
+    // WITH PAGINATION
     // ==========================
 
     @Cacheable(
             value = "restaurantFoods",
-            key = "#restaurantId"
+            key = "#restaurantId + '-' + #page + '-' + #size"
     )
-    public List<FoodItem> getFoodByRestaurant(
-            Long restaurantId
+    public Page<FoodItem> getFoodByRestaurant(
+
+            Long restaurantId,
+            int page,
+            int size
     ) {
 
         System.out.println(
                 "Fetching restaurant foods from DB..."
         );
 
-        return foodRepository
-                .findByRestaurantId(restaurantId);
+        Pageable pageable =
+                PageRequest.of(page, size);
+
+        return foodRepository.findByRestaurantId(
+                restaurantId,
+                pageable
+        );
     }
 }
