@@ -1,5 +1,6 @@
 package com.fooddelivery.fooddeliverybackend.service;
 
+import com.fooddelivery.fooddeliverybackend.dto.NotificationMessage;
 import com.fooddelivery.fooddeliverybackend.dto.OrderDetailsResponse;
 import com.fooddelivery.fooddeliverybackend.dto.OrderItemResponse;
 import com.fooddelivery.fooddeliverybackend.dto.OrderPlacedEvent;
@@ -49,6 +50,10 @@ public class OrderService {
 
     @Autowired
     private OrderProducer orderProducer;
+
+    @Autowired
+    private WebSocketNotificationService
+            webSocketNotificationService;
 
     // ==========================
     // PLACE ORDER
@@ -307,6 +312,22 @@ public class OrderService {
         }
 
         orderRepository.save(order);
+
+        // ==========================
+        // SEND WEBSOCKET NOTIFICATION
+        // ==========================
+
+        webSocketNotificationService
+                .sendOrderNotification(
+
+                        "Order #" +
+
+                                order.getId() +
+
+                                " updated to " +
+
+                                status
+                );
 
         return "Order updated to " + status;
     }

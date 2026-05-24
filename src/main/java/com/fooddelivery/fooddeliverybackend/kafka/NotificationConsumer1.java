@@ -1,3 +1,4 @@
+
 package com.fooddelivery.fooddeliverybackend.kafka;
 
 import com.fooddelivery.fooddeliverybackend.dto.OrderPlacedEvent;

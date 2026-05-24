@@ -18,12 +18,9 @@ public class NotificationConsumer {
     ) {
 
         System.out.println(
-                "NOTIFICATION SERVICE -> Processing..."
-        );
-
-        // FORCE FAILURE
-        throw new RuntimeException(
-                "Notification service failed"
+                "NOTIFICATION SERVICE -> " +
+                        "Sending order confirmation for Order ID: "
+                        + event.getOrderId()
         );
     }
 }
