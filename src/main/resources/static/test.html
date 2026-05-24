@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Order Notifications</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #messages {
+            margin-top: 20px;
+            padding: 0;
+        }
+
+        #messages li {
+            list-style: none;
+            background: white;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 Live Order Notifications</h1>
+
+<ul id="messages"></ul>
+
+<!-- SockJS -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+
+<!-- STOMP -->
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script>
+
+    console.log("Starting WebSocket Connection...");
+
+    // CONNECT TO SPRING BOOT WEBSOCKET
+    const socket =
+        new SockJS('http://localhost:8080/ws');
+
+    const stompClient =
+        Stomp.over(socket);
+
+    // CONNECT
+    stompClient.connect(
+        {},
+        function(frame) {
+
+            console.log("✅ Connected: " + frame);
+
+            // SUBSCRIBE
+            stompClient.subscribe(
+                '/topic/orders',
+
+                function(message) {
+
+                    console.log("📩 MESSAGE RECEIVED:");
+                    console.log(message.body);
+
+                    // CREATE LIST ITEM
+                    const li =
+                        document.createElement("li");
+
+                    li.innerText =
+                        message.body;
+
+                    // APPEND TO HTML
+                    document
+                        .getElementById("messages")
+                        .appendChild(li);
+                }
+            );
+        },
+
+        function(error) {
+
+            console.log("❌ Connection Error");
+            console.log(error);
+        }
+    );
+
+</script>
+
+</body>
+</html>

@@ -133,6 +133,14 @@ public class SecurityConfig {
                                 "CUSTOMER",
                                 "ADMIN"
                         )
+                        .requestMatchers(
+                                "/auth/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/test.html",
+                                "/ws/**"
+                        ).permitAll()
+
 
                         // ALL OTHER APIs
                         .anyRequest().authenticated()
@@ -143,6 +151,7 @@ public class SecurityConfig {
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
+
 
         return http.build();
     }
