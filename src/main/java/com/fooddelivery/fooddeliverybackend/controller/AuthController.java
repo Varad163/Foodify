@@ -20,7 +20,7 @@ public class AuthController {
     private AuthService authService;
 
     // REGISTER API
-    @PostMapping("/register")
+    @PostMapping("/signup")
     public ApiResponse<String> register(
             @Valid @RequestBody SignupRequest request
     ) {

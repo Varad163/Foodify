@@ -18,7 +18,8 @@ import org.springframework.util.backoff.FixedBackOff;
 @Configuration
 public class KafkaConfig {
 
-    // ==========================
+    // =========================
+    // =
     // MAIN TOPIC
     // ==========================
 

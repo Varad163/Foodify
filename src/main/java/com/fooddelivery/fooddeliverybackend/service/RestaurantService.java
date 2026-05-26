@@ -21,7 +21,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 @Service
 public class RestaurantService {
 
@@ -36,6 +36,11 @@ public class RestaurantService {
 
     @Autowired
     private DeliveryPartnerRepository deliveryPartnerRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+
 
     // =========================
     // CREATE RESTAURANT
@@ -113,38 +118,37 @@ public class RestaurantService {
     // CONFIRM ORDER
     // =========================
 
-    public String confirmOrder(Long orderId) {
+    public String confirmOrder(
+            Long orderId
+    ) {
 
-        Order order = orderRepository
-                .findById(orderId)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Order not found"
-                        )
-                );
-
-        // FIND AVAILABLE DELIVERY PARTNER
-        DeliveryPartner partner =
-                deliveryPartnerRepository
-                        .findFirstByAvailableTrue()
+        Order order =
+                orderRepository.findById(orderId)
                         .orElseThrow(() ->
                                 new RuntimeException(
-                                        "No delivery partner available"
+                                        "Order not found"
                                 )
                         );
 
-        // ASSIGN DELIVERY PARTNER
-        order.setDeliveryPartner(partner);
+        order.setStatus(
+                OrderStatus.CONFIRMED
+        );
 
-        // UPDATE STATUS
-        order.setStatus(OrderStatus.CONFIRMED);
-
-        // SAVE
         orderRepository.save(order);
 
-        return "Order confirmed and delivery partner assigned";
-    }
+        // =========================
+        // WEBSOCKET EVENT
+        // =========================
 
+        messagingTemplate.convertAndSend(
+                "/topic/orders",
+                "Order #" +
+                        order.getId() +
+                        " confirmed"
+        );
+
+        return "Order confirmed";
+    }
     // =========================
     // PREPARE ORDER
     // =========================
